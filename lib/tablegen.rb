@@ -1,7 +1,9 @@
 require 'tablegen/version'
 
 class TableGen
-  Column = Struct.new :alignment, :padding, :format
+  class Error < RuntimeError; end
+
+  Column = Struct.new :alignment, :format, :padding, :stretch
   Line = Struct.new :type, :data
 
   attr_accessor :border
@@ -17,8 +19,9 @@ class TableGen
     unless col = @columns[index]
       col = Column.new
       col.alignment = :left
-      col.padding = "\x20"
       col.format = proc {|data| data }
+      col.padding = "\x20"
+      col.stretch = false
 
       @columns[index] = col
     end
@@ -59,19 +62,22 @@ class TableGen
     width = 0
     rows.each {|row|
       format = format_row row.data
-      width = [width, format.length].max
+      length = real_length format
+      width = [width, length].max
     }
     width
   end
 
   def real_width
-    to_s.each_line.map {|l| l.chomp.length }.max || 0
+    to_s.each_line.map {|l| real_length l.chomp }.max || 0
   end
 
   def to_s
-    output = ''
+    validate_table
+
+    table = ''
     @lines.each {|line|
-      content = case line.type
+      out = case line.type
       when :row
         format_row line.data
       when :separator
@@ -79,9 +85,16 @@ class TableGen
       when :text
         line.data
       end
-      output += content.rstrip + $/
+      out.rstrip!
+
+      line_length = real_length out
+      if @width && line_length > @width
+        raise Error, "insufficient width to generate the table"
+      end
+
+      table += out + $/
     }
-    output.chomp
+    table.chomp
   end
 
   private
@@ -91,10 +104,14 @@ class TableGen
 
   def format_row(fields)
     out = ''
+
     fields.each_with_index {|data, index|
       col = column index
-      field = col.format[data]
-      padding = col.padding[0] * (column_width(index) - field.length)
+      width = column_width index
+      field = col.format[data, width]
+      length = real_length field
+
+      padding = col.padding[0] * (width - length)
 
       out += @border unless out.empty?
       out += col.alignment == :left ? field + padding : padding + field
@@ -102,17 +119,48 @@ class TableGen
     out
   end
 
-  def column_width(index)
+  def column_width(index, can_stretch = true)
     col = column index
-
     width = 0
-    rows.each {|row|
-      data = row.data[index]
-      next unless data
 
-      field = col.format[data]
-      width = [width, field.length].max
-    }
+    if can_stretch && col.stretch && @width
+      other_width = 0
+      @columns.each_with_index {|other_col, col_index|
+        next if other_col.stretch
+        other_width += column_width(col_index, false)
+        other_width += real_length @border
+      }
+      width = @width - other_width
+    else
+      rows.each {|row|
+        data = row.data[index]
+        next unless data
+
+        field = col.format[data]
+        width = [width, real_length(field)].max
+      }
+    end
     width
+  end
+
+  def validate_table
+    stretch_count = 0
+    inspected = []
+    rows.each {|row|
+      row.data.count.times {|col_i|
+        next if inspected.include? col_i
+
+        col = column col_i
+        stretch_count += 1 if col.stretch
+        inspected << col_i
+      }
+    }
+
+    raise Error, 'only one column can be stretched' if stretch_count > 1
+  end
+
+  def real_length(string)
+    doublesize = string.scan(/\p{Han}|\p{Katakana}|\p{Hiragana}|\p{Hangul}/).count
+    string.length + doublesize
   end
 end

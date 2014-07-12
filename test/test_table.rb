@@ -6,21 +6,31 @@ class TestTable < MiniTest::Test
   end
 
   def test_row
-    assert_equal 0, @gen.width
-    assert_equal 0, @gen.real_width
     assert_equal 0, @gen.height
     assert_empty @gen.to_s
 
     @gen.row 'test1', 'test2'
-    assert_equal 11, @gen.width
     assert_equal 1, @gen.height
 
     @gen.row 'test3', 'test4'
 
-    assert_equal 11, @gen.width
-    assert_equal 11, @gen.real_width
     assert_equal 2, @gen.height
     assert_equal 'test1 test2' + $/ + 'test3 test4', @gen.to_s
+  end
+
+  def test_width
+    assert_equal 0, @gen.width
+    assert_equal 0, @gen.real_width
+
+    @gen.row 'test'
+
+    assert_equal 4, @gen.width
+    assert_equal 4, @gen.real_width
+
+    @gen.width = 100
+
+    assert_equal 100, @gen.width
+    assert_equal 4, @gen.real_width
   end
 
   def test_no_row
@@ -100,6 +110,15 @@ class TestTable < MiniTest::Test
       'short     long_text', @gen.to_s
   end
 
+  def test_align_cjk
+    @gen.row('新世界より', 'from')
+    @gen.row('the', 'new world')
+
+    assert_equal \
+      '新世界より from' + $/ +
+      'the        new world', @gen.to_s
+  end
+
   def test_custom_padding
     @gen.row('long_text', 'short')
     @gen.row('short', 'long_text')
@@ -165,8 +184,10 @@ class TestTable < MiniTest::Test
     @gen.row('test', 0.42)
     @gen.row('test', 0.5678)
 
+    sizes = []
     @gen.column 1 do |col|
-      col.format = proc {|data|
+      col.format = proc {|data, width|
+        sizes << width
         "%d%%" % [data * 100]
       }
     end
@@ -174,6 +195,84 @@ class TestTable < MiniTest::Test
     assert_equal \
       'test 42%' + $/ +
       'test 56%', @gen.to_s
+    assert_equal [nil, 3], sizes.uniq
+  end
+
+  def test_stretch
+    @gen.row('test1', 'test2')
+    @gen.row('test3', 'test4')
+
+    @gen.column 0 do |col|
+      col.stretch = true
+    end
+
+    assert_equal \
+      'test1 test2' + $/ +
+      'test3 test4', @gen.to_s
+
+    @gen.width = 20
+
+    assert_equal \
+      'test1          test2' + $/ +
+      'test3          test4', @gen.to_s
+  end
+
+  def test_stretch_long_border
+    @gen.row('test1', 'test2')
+    @gen.row('test3', 'test4')
+
+    @gen.column 0 do |col|
+      col.stretch = true
+    end
+
+    @gen.width = 20
+    @gen.border = '-||-'
+
+    assert_equal \
+      'test1      -||-test2' + $/ +
+      'test3      -||-test4', @gen.to_s
+  end
+
+  def test_stretch_format
+    @gen.row('-')
+    @gen.row('-', 'test')
+
+    sizes = []
+    @gen.column 0 do |col|
+      col.stretch = true
+      col.format = proc {|data, width|
+        sizes << width
+        data * width
+      }
+    end
+
+    @gen.width = 20
+
+    assert_equal \
+      '---------------' + $/ +
+      '--------------- test', @gen.to_s
+
+    assert_equal [15, 15], sizes
+  end
+
+  def test_spread_stretch
+    @gen.row('test', 'test')
+
+    @gen.column 0 do |col|
+      col.stretch = true
+    end
+
+    @gen.column 1 do |col|
+      col.stretch = true
+    end
+
+    @gen.width = 20
+
+    error = assert_raises TableGen::Error do
+      @gen.to_s
+    end
+
+    assert_equal 'only one column can be stretched', error.message
   end
 
   def test_text
@@ -184,5 +283,16 @@ class TestTable < MiniTest::Test
     assert_equal 'Hello World!', @gen.to_s
     assert_equal 0, @gen.width
     assert_equal 12, @gen.real_width
+  end
+
+  def test_insufficient_width
+    @gen.width = 2
+    @gen.row 'fail'
+
+    error = assert_raises TableGen::Error do
+      @gen.to_s
+    end
+
+    assert_equal 'insufficient width to generate the table', error.message
   end
 end
