@@ -4,7 +4,7 @@ class TableGen
   class Error < RuntimeError; end
   class WidthError < RuntimeError; end
 
-  Column = Struct.new :alignment, :format, :padding, :stretch
+  Column = Struct.new :alignment, :format, :min_width, :padding, :stretch
   Line = Struct.new :type, :data
 
   attr_accessor :border
@@ -21,6 +21,7 @@ class TableGen
       col = Column.new
       col.alignment = :left
       col.format = proc {|data| data }
+      col.min_width = 0
       col.padding = "\x20"
       col.stretch = false
 
@@ -140,8 +141,8 @@ class TableGen
         data = row.data[index]
         next unless data
 
-        length = real_length col.format[data, 0]
-        sizes << length
+        length = real_length col.format[data, col.min_width]
+        sizes << [col.min_width, length].max
       }
       sizes.max
     end

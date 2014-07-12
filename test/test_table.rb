@@ -45,6 +45,8 @@ class TestTable < MiniTest::Test
     col = @gen.column 0
     assert_equal :left, col.alignment
     assert_equal "\x20", col.padding
+    assert_equal 0, col.min_width
+    assert_equal false, col.stretch
 
     block_param = nil
     @gen.column 0 do |col|
@@ -275,16 +277,6 @@ class TestTable < MiniTest::Test
     assert_equal 'only one column can be stretched', error.message
   end
 
-  def test_text
-    assert_equal 0, @gen.height
-    @gen.text 'Hello World!  '
-    assert_equal 1, @gen.height
-
-    assert_equal 'Hello World!', @gen.to_s
-    assert_equal 0, @gen.width
-    assert_equal 12, @gen.real_width
-  end
-
   def test_table_outgrow
     @gen.width = 2
     @gen.row 'too long'
@@ -309,5 +301,34 @@ class TestTable < MiniTest::Test
     end
 
     assert_equal 'insufficient width to generate the table', error.message
+  end
+
+  def test_minimum_width
+    @gen.row('long_text', 'short')
+    @gen.row('short', 'long_text')
+
+    sizes = []
+    @gen.column 0 do |col|
+      col.min_width = 15
+      col.format = proc {|data, width|
+        sizes << width
+        data
+      }
+    end
+
+    assert_equal \
+      'long_text       short' + $/ +
+      'short           long_text', @gen.to_s
+    assert_equal [15], sizes.uniq
+  end
+
+  def test_text
+    assert_equal 0, @gen.height
+    @gen.text 'Hello World!  '
+    assert_equal 1, @gen.height
+
+    assert_equal 'Hello World!', @gen.to_s
+    assert_equal 0, @gen.width
+    assert_equal 12, @gen.real_width
   end
 end
