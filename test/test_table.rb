@@ -195,7 +195,7 @@ class TestTable < MiniTest::Test
     assert_equal \
       'test 42%' + $/ +
       'test 56%', @gen.to_s
-    assert_equal [nil, 3], sizes.uniq
+    assert_equal [0, 3], sizes.uniq
   end
 
   def test_stretch
@@ -252,7 +252,7 @@ class TestTable < MiniTest::Test
       '---------------' + $/ +
       '--------------- test', @gen.to_s
 
-    assert_equal [15, 15], sizes
+    assert_equal [0, 15], sizes.uniq
   end
 
   def test_spread_stretch
@@ -285,9 +285,24 @@ class TestTable < MiniTest::Test
     assert_equal 12, @gen.real_width
   end
 
-  def test_insufficient_width
+  def test_table_outgrow
     @gen.width = 2
-    @gen.row 'fail'
+    @gen.row 'too long'
+
+    error = assert_raises TableGen::Error do
+      @gen.to_s
+    end
+
+    assert_equal 'insufficient width to generate the table', error.message
+  end
+
+  def test_stretch_outgrow
+    @gen.width = 2
+    @gen.row 'too long'
+
+    @gen.column 0 do |col|
+      col.stretch = true
+    end
 
     error = assert_raises TableGen::Error do
       @gen.to_s

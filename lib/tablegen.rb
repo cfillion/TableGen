@@ -121,7 +121,6 @@ class TableGen
 
   def column_width(index, can_stretch = true)
     col = column index
-    width = 0
 
     if can_stretch && col.stretch && @width
       other_width = 0
@@ -130,17 +129,21 @@ class TableGen
         other_width += column_width(col_index, false)
         other_width += real_length @border
       }
-      width = @width - other_width
+
+      remaining_width = @width - other_width
+      needed_width = column_width index, false
+      [remaining_width, needed_width].max
     else
+      sizes = []
       rows.each {|row|
         data = row.data[index]
         next unless data
 
-        field = col.format[data]
-        width = [width, real_length(field)].max
+        length = real_length col.format[data, 0]
+        sizes << length
       }
+      sizes.max
     end
-    width
   end
 
   def validate_table
