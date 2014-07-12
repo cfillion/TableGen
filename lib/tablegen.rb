@@ -2,6 +2,7 @@ require 'tablegen/version'
 
 class TableGen
   class Error < RuntimeError; end
+  class WidthError < RuntimeError; end
 
   Column = Struct.new :alignment, :format, :padding, :stretch
   Line = Struct.new :type, :data
@@ -89,7 +90,7 @@ class TableGen
 
       line_length = real_length out
       if @width && line_length > @width
-        raise Error, "insufficient width to generate the table"
+        raise WidthError, "insufficient width to generate the table"
       end
 
       table += out + $/

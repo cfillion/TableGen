@@ -289,7 +289,7 @@ class TestTable < MiniTest::Test
     @gen.width = 2
     @gen.row 'too long'
 
-    error = assert_raises TableGen::Error do
+    error = assert_raises TableGen::WidthError do
       @gen.to_s
     end
 
@@ -304,7 +304,7 @@ class TestTable < MiniTest::Test
       col.stretch = true
     end
 
-    error = assert_raises TableGen::Error do
+    error = assert_raises TableGen::WidthError do
       @gen.to_s
     end
 
