@@ -19,6 +19,11 @@ class TableGen
 
   def column(index)
     unless col = @columns[index]
+      if @columns.count < index
+        # create columns so the holes are not filled with nil
+        (@columns.count..index).each {|i| column i }
+      end
+
       col = Column.new
       col.alignment = :left
       col.collapse = false
@@ -89,8 +94,8 @@ class TableGen
     @collapsed.clear
 
     loop do
-      table, missing_space = generate_table
-      break if missing_space == 0
+      table, missing_width = generate_table
+      break if missing_width == 0
 
       candidates = []
       @columns.each_with_index {|col, index|
@@ -104,7 +109,7 @@ class TableGen
       end
 
       @collapsed << candidates.min_by {|index|
-        (column_width(index, false) - missing_space).abs
+        (column_width(index, false) - missing_width).abs
       }
     end
 
@@ -150,15 +155,18 @@ class TableGen
     }
 
     if can_stretch && index == stretch_index && @width
-      other_width = 0
+      used_width = 0
       @columns.each_with_index {|dist_col, dist_index|
         next if dist_index == stretch_index || @collapsed.include?(dist_index)
 
-        other_width += column_width(dist_index, false)
-        other_width += real_length @border
+        dist_width = column_width(dist_index, false)
+        next if dist_width.nil?
+
+        used_width += dist_width
+        used_width += real_length @border
       }
 
-      remaining_width = @width - other_width
+      remaining_width = @width - used_width
       needed_width = column_width index, false
       [remaining_width, needed_width].max
     else
@@ -176,15 +184,14 @@ class TableGen
 
   def create_columns
     rows.each {|row|
-      row.data.count.times {|col_i|
-        column col_i
-      }
+      # creates all columns up to the specified index
+      column row.data.count - 1
     }
   end
 
   def generate_table
     table = ''
-    missing_space = [0]
+    missing_width = [0]
 
     @lines.each {|line|
       out = case line.type
@@ -198,11 +205,11 @@ class TableGen
       out.rstrip!
 
       line_length = real_length out
-      missing_space << line_length - @width if @width
+      missing_width << line_length - @width if @width
 
       table += out + $/
     }
 
-    return table.chomp, missing_space.max
+    return table.chomp, missing_width.max
   end
 end

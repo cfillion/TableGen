@@ -370,6 +370,23 @@ class TestTable < MiniTest::Test
     assert_equal 'col1    col3', @gen.to_s
   end
 
+  def test_unused_column
+    @gen.column 42
+    @gen.row 'test'
+    assert_equal 'test', @gen.to_s
+  end
+
+  def test_stretch_empty_column
+    @gen.column 0 do |col|
+      col.stretch = true
+    end
+
+    @gen.column 42
+    @gen.width = 15
+    @gen.row 'test1', 'test2'
+    assert_equal 'test1     test2', @gen.to_s
+  end
+
   def test_text
     assert_equal 0, @gen.height
     @gen.text 'Hello World!  '
