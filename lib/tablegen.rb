@@ -4,9 +4,21 @@ class TableGen
   class Error < RuntimeError; end
   class WidthError < Error; end
 
-  Column = Struct.new :alignment, :collapse, :format, :min_width, :padding, :stretch
-  Header = Struct.new :name
-  Line = Struct.new :type, :data
+  Column = Struct.new \
+    :alignment,
+    :collapse,
+    :format,
+    :header_alignment,
+    :min_width,
+    :padding,
+    :stretch
+
+  Header = Struct.new \
+    :name
+
+  Line = Struct.new \
+    :type,
+    :data
 
   attr_accessor :border
   attr_writer   :width
@@ -29,6 +41,7 @@ class TableGen
       col.alignment = :left
       col.collapse = false
       col.format = proc {|data| data }
+      col.header_alignment = :auto
       col.min_width = 0
       col.padding = "\x20"
       col.stretch = false
@@ -145,9 +158,15 @@ class TableGen
       pad_width = width - length
       padding = col.padding[0] * pad_width
 
+      alignment = if data.is_a?(Header) && col.header_alignment != :auto
+        col.header_alignment
+      else
+        col.alignment
+      end
+
       out += @border unless out.empty?
       out += \
-      case col.alignment
+      case alignment
       when :left
         field + padding
       when :right

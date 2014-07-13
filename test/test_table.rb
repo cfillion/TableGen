@@ -46,7 +46,9 @@ class TestTable < MiniTest::Test
   def test_column
     col = @gen.column 0
     assert_equal :left, col.alignment
+    assert_equal false, col.collapse
     assert_equal "\x20", col.padding
+    assert_equal :auto, col.header_alignment
     assert_equal 0, col.min_width
     assert_equal false, col.stretch
 
@@ -421,13 +423,38 @@ class TestTable < MiniTest::Test
 
   def test_header
     @gen.column 0 do |col|
+      col.alignment = :right
       col.format = proc {|data|
-        flunk 'format called'
+        if data == 'long_text'
+          data
+        else
+          flunk 'format called'
+        end
       }
     end
 
-    @gen.header 'test1', 'test2'
-    assert_equal 'test1 test2', @gen.to_s
+    @gen.header 'head'
+    @gen.row 'long_text'
+
+    assert_equal \
+      '     head' + $/ +
+      'long_text', @gen.to_s
+  end
+
+  def test_header_alignment
+    @gen.column 0 do |col|
+      col.alignment = :right
+      col.header_alignment = :left
+    end
+
+    @gen.header 'test1'
+    @gen.row 'long_text'
+    @gen.row 'test2'
+
+    assert_equal \
+      'test1' + $/ +
+      'long_text' + $/ +
+      '    test2', @gen.to_s
   end
 
   def test_text
