@@ -2,9 +2,9 @@ require 'tablegen/version'
 
 class TableGen
   class Error < RuntimeError; end
-  class WidthError < RuntimeError; end
+  class WidthError < Error; end
 
-  Column = Struct.new :alignment, :format, :min_width, :padding, :stretch
+  Column = Struct.new :alignment, :collapse, :format, :min_width, :padding, :stretch
   Line = Struct.new :type, :data
 
   attr_accessor :border
@@ -14,12 +14,14 @@ class TableGen
     @border = "\x20"
     @columns = []
     @lines = []
+    @collapsed = []
   end
 
   def column(index)
     unless col = @columns[index]
       col = Column.new
       col.alignment = :left
+      col.collapse = false
       col.format = proc {|data| data }
       col.min_width = 0
       col.padding = "\x20"
@@ -78,25 +80,32 @@ class TableGen
     validate_table
 
     table = ''
-    @lines.each {|line|
-      out = case line.type
-      when :row
-        format_row line.data
-      when :separator
-        line.data[0] * width
-      when :text
-        line.data
-      end
-      out.rstrip!
+    @collapsed.clear
 
-      line_length = real_length out
-      if @width && line_length > @width
-        raise WidthError, "insufficient width to generate the table"
-      end
+    loop do
+      table, missing_space = generate_table
 
-      table += out + $/
-    }
-    table.chomp
+      if missing_space > 0
+        candidates = []
+        @columns.each_with_index {|c, index|
+          if c.collapse && !@collapsed.include?(index)
+            candidates << index
+          end
+        }
+
+        if candidates.empty?
+          raise WidthError, "insufficient width to generate the table"
+        end
+
+        @collapsed << candidates.min_by {|i|
+          (column_width(i, false) - missing_space).abs
+        }
+      else
+        break
+      end
+    end
+
+    table
   end
 
   private
@@ -104,11 +113,18 @@ class TableGen
     @lines.select {|l| l.type == :row }
   end
 
+  def real_length(string)
+    doublesize = string.scan(/\p{Han}|\p{Katakana}|\p{Hiragana}|\p{Hangul}/).count
+    string.length + doublesize
+  end
+
   def format_row(fields)
     out = ''
 
     fields.each_with_index {|data, index|
+      next if @collapsed.include? index
       col = column index
+
       width = column_width index
       field = col.format[data, width]
       length = real_length field
@@ -116,7 +132,9 @@ class TableGen
       padding = col.padding[0] * (width - length)
 
       out += @border unless out.empty?
-      out += col.alignment == :left ? field + padding : padding + field
+      out += col.alignment == :left ?
+        field + padding :
+        padding + field
     }
     out
   end
@@ -127,7 +145,8 @@ class TableGen
     if can_stretch && col.stretch && @width
       other_width = 0
       @columns.each_with_index {|other_col, col_index|
-        next if other_col.stretch
+        next if other_col.stretch || @collapsed.include?(col_index)
+
         other_width += column_width(col_index, false)
         other_width += real_length @border
       }
@@ -164,8 +183,27 @@ class TableGen
     raise Error, 'only one column can be stretched' if stretch_count > 1
   end
 
-  def real_length(string)
-    doublesize = string.scan(/\p{Han}|\p{Katakana}|\p{Hiragana}|\p{Hangul}/).count
-    string.length + doublesize
+  def generate_table
+    table = ''
+    missing_space = [0]
+
+    @lines.each {|line|
+      out = case line.type
+      when :row
+        format_row line.data
+      when :separator
+        line.data[0] * width
+      when :text
+        line.data
+      end
+      out.rstrip!
+
+      line_length = real_length out
+      missing_space << line_length - @width if @width
+
+      table += out + $/
+    }
+
+    return table.chomp, missing_space.max
   end
 end

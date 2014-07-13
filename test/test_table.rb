@@ -322,6 +322,33 @@ class TestTable < MiniTest::Test
     assert_equal [15], sizes.uniq
   end
 
+  def test_collapse
+    @gen.row('column1', 'col2', 'col3')
+
+    @gen.column 0 do |col|
+      col.collapse = true
+    end
+
+    @gen.column 1 do |col|
+      col.stretch = true
+    end
+
+    @gen.column 2 do |col|
+      col.collapse = true
+    end
+
+    assert_equal 'column1 col2 col3', @gen.to_s
+
+    @gen.width = 4
+    assert_equal 'col2', @gen.to_s
+
+    @gen.width = 12
+    assert_equal 'column1 col2', @gen.to_s
+
+    @gen.width = 10
+    assert_equal 'col2  col3', @gen.to_s
+  end
+
   def test_text
     assert_equal 0, @gen.height
     @gen.text 'Hello World!  '
