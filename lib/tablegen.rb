@@ -145,9 +145,15 @@ class TableGen
       padding = col.padding[0] * (width - length)
 
       out += @border unless out.empty?
-      out += col.alignment == :left ?
-        field + padding :
+      out += \
+      case col.alignment
+      when :left
+        field + padding
+      when :right
         padding + field
+      else
+        raise Error, "invalid alignment '%s'" % col.alignment
+      end
     }
     out
   end

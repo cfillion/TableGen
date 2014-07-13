@@ -15,7 +15,9 @@ class TestTable < MiniTest::Test
     @gen.row 'test3', 'test4'
 
     assert_equal 2, @gen.height
-    assert_equal 'test1 test2' + $/ + 'test3 test4', @gen.to_s
+    assert_equal \
+      'test1 test2' + $/ +
+      'test3 test4', @gen.to_s
   end
 
   def test_width
@@ -104,8 +106,8 @@ class TestTable < MiniTest::Test
   end
 
   def test_align_left
-    @gen.row('long_text', 'short')
-    @gen.row('short', 'long_text')
+    @gen.row 'long_text', 'short'
+    @gen.row 'short', 'long_text'
 
     assert_equal \
       'long_text short' + $/ +
@@ -113,8 +115,8 @@ class TestTable < MiniTest::Test
   end
 
   def test_align_right
-    @gen.row('long_text', 'short')
-    @gen.row('short', 'long_text')
+    @gen.row 'long_text', 'short'
+    @gen.row 'short', 'long_text'
 
     col = @gen.column 1 do |col|
       col.alignment = :right
@@ -125,9 +127,23 @@ class TestTable < MiniTest::Test
       'short     long_text', @gen.to_s
   end
 
+  def test_align_other
+    @gen.row 'test'
+
+    col = @gen.column 0 do |col|
+      col.alignment = :top
+    end
+
+    error = assert_raises TableGen::Error do
+      @gen.to_s
+    end
+
+    assert_equal "invalid alignment 'top'", error.message
+  end
+
   def test_align_cjk
-    @gen.row('新世界より', 'from')
-    @gen.row('the', 'new world')
+    @gen.row '新世界より', 'from'
+    @gen.row 'the', 'new world'
 
     assert_equal \
       '新世界より from' + $/ +
@@ -135,8 +151,8 @@ class TestTable < MiniTest::Test
   end
 
   def test_custom_padding
-    @gen.row('long_text', 'short')
-    @gen.row('short', 'long_text')
+    @gen.row 'long_text', 'short'
+    @gen.row 'short', 'long_text'
 
     @gen.column 0 do |col|
       col.padding = '_'
@@ -152,8 +168,8 @@ class TestTable < MiniTest::Test
   end
 
   def test_holes
-    @gen.row('long_text', 'short')
-    @gen.row('short')
+    @gen.row 'long_text', 'short'
+    @gen.row 'short'
 
     assert_equal \
       'long_text short' + $/ +
@@ -187,8 +203,8 @@ class TestTable < MiniTest::Test
 
   def test_custom_border
     @gen.border = '-|-'
-    @gen.row('long_text', 'short')
-    @gen.row('short', 'long_text')
+    @gen.row 'long_text', 'short'
+    @gen.row 'short', 'long_text'
 
     assert_equal \
       'long_text-|-short' + $/ +
@@ -196,8 +212,8 @@ class TestTable < MiniTest::Test
   end
 
   def test_custom_format
-    @gen.row('test', 0.42)
-    @gen.row('test', 0.5678)
+    @gen.row 'test', 0.42
+    @gen.row 'test', 0.5678
 
     sizes = []
     @gen.column 1 do |col|
@@ -210,12 +226,13 @@ class TestTable < MiniTest::Test
     assert_equal \
       'test 42%' + $/ +
       'test 56%', @gen.to_s
+
     assert_equal [0, 3], sizes.uniq
   end
 
   def test_stretch
-    @gen.row('test1', 'test2')
-    @gen.row('test3', 'test4')
+    @gen.row 'test1', 'test2'
+    @gen.row 'test3', 'test4'
 
     @gen.column 0 do |col|
       col.stretch = true
@@ -233,8 +250,8 @@ class TestTable < MiniTest::Test
   end
 
   def test_stretch_long_border
-    @gen.row('test1', 'test2')
-    @gen.row('test3', 'test4')
+    @gen.row 'test1', 'test2'
+    @gen.row 'test3', 'test4'
 
     @gen.column 0 do |col|
       col.stretch = true
@@ -249,8 +266,8 @@ class TestTable < MiniTest::Test
   end
 
   def test_stretch_format
-    @gen.row('-')
-    @gen.row('-', 'test')
+    @gen.row '-'
+    @gen.row '-', 'test'
 
     sizes = []
     @gen.column 0 do |col|
@@ -271,7 +288,7 @@ class TestTable < MiniTest::Test
   end
 
   def test_multi_stretch
-    @gen.row('test', 'test')
+    @gen.row 'test', 'test'
 
     @gen.column 0 do |col|
       col.stretch = true
@@ -313,8 +330,8 @@ class TestTable < MiniTest::Test
   end
 
   def test_minimum_width
-    @gen.row('long_text', 'short')
-    @gen.row('short', 'long_text')
+    @gen.row 'long_text', 'short'
+    @gen.row 'short', 'long_text'
 
     sizes = []
     @gen.column 0 do |col|
@@ -332,7 +349,7 @@ class TestTable < MiniTest::Test
   end
 
   def test_collapse
-    @gen.row('column1', 'col2', 'col3')
+    @gen.row 'column1', 'col2', 'col3'
 
     @gen.column 0 do |col|
       col.collapse = true
@@ -355,7 +372,7 @@ class TestTable < MiniTest::Test
   end
 
   def test_collapse_stretch
-    @gen.row('col1', 'col2', 'col3')
+    @gen.row 'col1', 'col2', 'col3'
     @gen.column 1 do |col|
       col.collapse = true
       col.stretch = true
