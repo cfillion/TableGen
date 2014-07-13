@@ -142,7 +142,8 @@ class TableGen
       field = format_field(col, data, width)
       length = real_length field
 
-      padding = col.padding[0] * (width - length)
+      pad_width = width - length
+      padding = col.padding[0] * pad_width
 
       out += @border unless out.empty?
       out += \
@@ -151,6 +152,10 @@ class TableGen
         field + padding
       when :right
         padding + field
+      when :center
+        left = pad_width / 2
+        right = left + (pad_width % 2)
+        padding[0...left] + field + padding[0...right]
       else
         raise Error, "invalid alignment '%s'" % col.alignment
       end

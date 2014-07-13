@@ -127,6 +127,21 @@ class TestTable < MiniTest::Test
       'short     long_text', @gen.to_s
   end
 
+  def test_align_center
+    @gen.row 'long_text', 'test'
+    @gen.row 'short', 'test'
+    @gen.row 'test', 'test'
+
+    col = @gen.column 0 do |col|
+      col.alignment = :center
+    end
+
+    assert_equal \
+      'long_text test' + $/ +
+      '  short   test' + $/ +
+      '  test    test', @gen.to_s
+  end
+
   def test_align_other
     @gen.row 'test'
 
