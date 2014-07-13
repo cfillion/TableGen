@@ -5,6 +5,7 @@ class TableGen
   class WidthError < Error; end
 
   Column = Struct.new :alignment, :collapse, :format, :min_width, :padding, :stretch
+  Header = Struct.new :name
   Line = Struct.new :type, :data
 
   attr_accessor :border
@@ -48,6 +49,10 @@ class TableGen
   def row(*fields)
     raise ArgumentError, 'wrong number of arguments (0 for 1+)' if fields.empty?
     @lines << Line.new(:row, fields)
+  end
+
+  def header(*fields)
+    row *fields.map {|name| Header.new name }
   end
 
   def separator(char = '=')
@@ -134,7 +139,7 @@ class TableGen
       col = column index
 
       width = column_width index
-      field = col.format[data, width]
+      field = format_field(col, data, width)
       length = real_length field
 
       padding = col.padding[0] * (width - length)
@@ -175,10 +180,18 @@ class TableGen
         data = row.data[index]
         next unless data
 
-        length = real_length col.format[data, col.min_width]
+        length = real_length format_field(col, data, col.min_width)
         sizes << [col.min_width, length].max
       }
       sizes.max
+    end
+  end
+
+  def format_field(column, data, width)
+    if data.is_a? Header
+      data.name
+    else
+      column.format[data, width]
     end
   end
 

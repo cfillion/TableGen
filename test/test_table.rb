@@ -387,6 +387,17 @@ class TestTable < MiniTest::Test
     assert_equal 'test1     test2', @gen.to_s
   end
 
+  def test_header
+    @gen.column 0 do |col|
+      col.format = proc {|data|
+        flunk 'format called'
+      }
+    end
+
+    @gen.header 'test1', 'test2'
+    assert_equal 'test1 test2', @gen.to_s
+  end
+
   def test_text
     assert_equal 0, @gen.height
     @gen.text 'Hello World!  '
