@@ -53,7 +53,7 @@ class TestTable < MiniTest::Test
       block_param = col
     end
     assert_equal col, block_param
-    
+
     input = 'test'
     assert_same input, col.format[input]
   end
@@ -89,7 +89,7 @@ class TestTable < MiniTest::Test
     assert_equal 0, @gen.height
     refute_equal 'cleared', @gen.column(0).padding
   end
-  
+
   def test_align_left
     @gen.row('long_text', 'short')
     @gen.row('short', 'long_text')
@@ -257,7 +257,7 @@ class TestTable < MiniTest::Test
     assert_equal [0, 15], sizes.uniq
   end
 
-  def test_spread_stretch
+  def test_multi_stretch
     @gen.row('test', 'test')
 
     @gen.column 0 do |col|
@@ -270,11 +270,7 @@ class TestTable < MiniTest::Test
 
     @gen.width = 20
 
-    error = assert_raises TableGen::Error do
-      @gen.to_s
-    end
-
-    assert_equal 'only one column can be stretched', error.message
+    assert_equal 'test            test', @gen.to_s
   end
 
   def test_table_outgrow
@@ -329,10 +325,6 @@ class TestTable < MiniTest::Test
       col.collapse = true
     end
 
-    @gen.column 1 do |col|
-      col.stretch = true
-    end
-
     @gen.column 2 do |col|
       col.collapse = true
     end
@@ -346,7 +338,23 @@ class TestTable < MiniTest::Test
     assert_equal 'column1 col2', @gen.to_s
 
     @gen.width = 10
-    assert_equal 'col2  col3', @gen.to_s
+    assert_equal 'col2 col3', @gen.to_s
+  end
+
+  def test_collapse_stretch
+    @gen.row('col1', 'col2', 'col3')
+    @gen.column 1 do |col|
+      col.collapse = true
+      col.stretch = true
+    end
+
+    @gen.column 2 do |col|
+      col.stretch = true
+      col.alignment = :right
+    end
+
+    @gen.width = 12
+    assert_equal 'col1    col3', @gen.to_s
   end
 
   def test_text

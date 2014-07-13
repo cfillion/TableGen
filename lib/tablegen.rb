@@ -77,32 +77,29 @@ class TableGen
   end
 
   def to_s
-    validate_table
+    create_columns
 
     table = ''
     @collapsed.clear
 
     loop do
       table, missing_space = generate_table
+      break if missing_space == 0
 
-      if missing_space > 0
-        candidates = []
-        @columns.each_with_index {|c, index|
-          if c.collapse && !@collapsed.include?(index)
-            candidates << index
-          end
-        }
-
-        if candidates.empty?
-          raise WidthError, "insufficient width to generate the table"
+      candidates = []
+      @columns.each_with_index {|col, index|
+        if col.collapse && !@collapsed.include?(index)
+          candidates << index
         end
+      }
 
-        @collapsed << candidates.min_by {|i|
-          (column_width(i, false) - missing_space).abs
-        }
-      else
-        break
+      if candidates.empty?
+        raise WidthError, "insufficient width to generate the table"
       end
+
+      @collapsed << candidates.min_by {|index|
+        (column_width(index, false) - missing_space).abs
+      }
     end
 
     table
@@ -142,12 +139,16 @@ class TableGen
   def column_width(index, can_stretch = true)
     col = column index
 
-    if can_stretch && col.stretch && @width
-      other_width = 0
-      @columns.each_with_index {|other_col, col_index|
-        next if other_col.stretch || @collapsed.include?(col_index)
+    stretch_index = @columns.find_index {|c|
+      c.stretch && !@collapsed.include?(@columns.index(c))
+    }
 
-        other_width += column_width(col_index, false)
+    if can_stretch && index == stretch_index && @width
+      other_width = 0
+      @columns.each_with_index {|dist_col, dist_index|
+        next if dist_index == stretch_index || @collapsed.include?(dist_index)
+
+        other_width += column_width(dist_index, false)
         other_width += real_length @border
       }
 
@@ -167,20 +168,12 @@ class TableGen
     end
   end
 
-  def validate_table
-    stretch_count = 0
-    inspected = []
+  def create_columns
     rows.each {|row|
       row.data.count.times {|col_i|
-        next if inspected.include? col_i
-
-        col = column col_i
-        stretch_count += 1 if col.stretch
-        inspected << col_i
+        column col_i
       }
     }
-
-    raise Error, 'only one column can be stretched' if stretch_count > 1
   end
 
   def generate_table
