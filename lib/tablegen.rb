@@ -34,6 +34,12 @@ class TableGen
     col
   end
 
+  def columns(*indexes, &block)
+    indexes.each {|index|
+      column index, &block
+    }
+  end
+
   def row(*fields)
     raise ArgumentError, 'wrong number of arguments (0 for 1+)' if fields.empty?
     @lines << Line.new(:row, fields)

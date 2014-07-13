@@ -58,6 +58,19 @@ class TestTable < MiniTest::Test
     assert_same input, col.format[input]
   end
 
+  def test_columns
+    block_params = []
+    @gen.columns 0, 1, 2, 3 do |col|
+      col.alignment = :left
+      block_params << col
+    end
+
+    cols = []
+    4.times {|i| cols << @gen.column(i) }
+
+    assert_equal cols, block_params
+  end
+
   def test_clear
     @gen.row 'test'
 
