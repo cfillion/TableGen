@@ -2,6 +2,18 @@
 
 Plain text table generator for ruby.
 
+Main features:
+
+- Choose column/header alignment (left, center or right)
+- Embed progress bars (example in the documentation)
+- Insert text in the table
+- Minimum column length
+- Optional size constraint
+- Per column data formatter (data is separated from the layout)
+- Scale down large tables with collapsible columns
+- Scale up small tables with stretchable columns
+- Unlimited border length
+
 ## Installation
 
 Add this line to your application's Gemfile:
