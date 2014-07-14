@@ -59,6 +59,27 @@ Internet Explorer Trident       Proprietary
 Mozilla Firefox   Gecko         MPL
 ```
 
+Set the size constraint and stretch the first column:
+
+```ruby
+table.width = 50
+table.column 0 do |col|
+  col.stretch = true
+end
+puts table
+```
+
+Output:
+
+```text
+Browser Name             Layout Engine License
+==================================================
+Chromium                 Blink         BSD
+dwb                      WebKit        GNU GPLv3
+Internet Explorer        Trident       Proprietary
+Mozilla Firefox          Gecko         MPL
+```
+
 ## Contributing
 
 1. [Fork it](https://bitbucket.org/cfi30/tablegen/fork)
