@@ -1,17 +1,17 @@
 # coding: utf-8
-lib = File.expand_path('../lib', __FILE__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+lib = File.expand_path '../lib', __FILE__
+$LOAD_PATH.unshift lib unless $LOAD_PATH.include? lib
+
 require 'tablegen/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "tablegen"
   spec.version       = Tablegen::VERSION
   spec.authors       = ["cfi30"]
-  spec.email         = ["git@cfillion.tk"]
-  spec.summary       = %q{TODO: Write a short summary. Required.}
-  spec.description   = %q{TODO: Write a longer description. Optional.}
-  spec.homepage      = ""
-  spec.license       = "MIT"
+  spec.email         = ["tablegen@cfillion.tk"]
+  spec.summary       = %q{plain text table generator}
+  spec.homepage      = "https://bitbucket.org/cfi30/tablegen"
+  spec.license       = "LGPL-3.0+"
 
   spec.files         = `git ls-files -z`.split("\x0")
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
@@ -19,6 +19,6 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_development_dependency "bundler", "~> 1.6"
-  spec.add_development_dependency 'minitest', '~> 5.3'
+  spec.add_development_dependency 'minitest', '~> 5.4'
   spec.add_development_dependency "rake"
 end
