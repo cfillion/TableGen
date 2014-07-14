@@ -35,25 +35,29 @@ The documentation is hosted at
 
 ## Basic Usage
 
-    require 'tablegen'
+```ruby
+require 'tablegen'
 
-    table = TableGen.new
-    table.header 'Browser Name', 'Layout Engine', 'License'
-    table.separator
-    table.row 'Chromium', 'Blink', 'BSD'
-    table.row 'dwb', 'WebKit', 'GNU GPLv3'
-    table.row 'Internet Explorer', 'Trident', 'Proprietary'
-    table.row 'Mozilla Firefox', 'Gecko', 'MPL'
-    puts table
+table = TableGen.new
+table.header 'Browser Name', 'Layout Engine', 'License'
+table.separator
+table.row 'Chromium', 'Blink', 'BSD'
+table.row 'dwb', 'WebKit', 'GNU GPLv3'
+table.row 'Internet Explorer', 'Trident', 'Proprietary'
+table.row 'Mozilla Firefox', 'Gecko', 'MPL'
+puts table
+```
 
 Output:
 
-    Browser Name      Layout Engine License
-    ===========================================
-    Chromium          Blink         BSD
-    dwb               WebKit        GNU GPLv3
-    Internet Explorer Trident       Proprietary
-    Mozilla Firefox   Gecko         MPL
+```text
+Browser Name      Layout Engine License
+===========================================
+Chromium          Blink         BSD
+dwb               WebKit        GNU GPLv3
+Internet Explorer Trident       Proprietary
+Mozilla Firefox   Gecko         MPL
+```
 
 ## Contributing
 
