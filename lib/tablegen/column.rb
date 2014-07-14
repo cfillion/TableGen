@@ -18,7 +18,7 @@ class TableGen::Column
   # @return [Boolean]
   attr_accessor :collapse
 
-  # The row formatter. The default block returns the original data.
+  # The row formatter. The default block converts the original data to a {String}.
   #
   # @example Progress Bar
   #   # formats 0.4 to [####      ]
@@ -70,7 +70,7 @@ class TableGen::Column
   def initialize
     @alignment = :left
     @collapse = false
-    @format = proc {|data| data }
+    @format = proc {|data| data.to_s }
     @header_alignment = :auto
     @min_width = 0
     @padding = "\x20"

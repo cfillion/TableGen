@@ -60,9 +60,15 @@ class TestTable < MiniTest::Test
       block_param = col
     end
     assert_equal col, block_param
+  end
+
+  def test_default_format
+    col = @gen.column 0
 
     input = 'test'
     assert_same input, col.format[input]
+
+    assert_equal '42', col.format[42]
   end
 
   def test_columns
