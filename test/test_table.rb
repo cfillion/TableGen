@@ -7,14 +7,17 @@ class TestTable < MiniTest::Test
 
   def test_row
     assert_equal 0, @gen.height
+    assert_equal 0, @gen.real_height
     assert_empty @gen.to_s
 
     @gen.row 'test1', 'test2'
     assert_equal 1, @gen.height
+    assert_equal 1, @gen.real_height
 
     @gen.row 'test3', 'test4'
-
     assert_equal 2, @gen.height
+    assert_equal 2, @gen.real_height
+
     assert_equal \
       'test1 test2' + $/ +
       'test3 test4', @gen.to_s
@@ -84,6 +87,7 @@ class TestTable < MiniTest::Test
 
     refute_equal 0, @gen.height
     assert_equal 'not cleared', @gen.column(0).padding
+
     @gen.clear
 
     assert_equal 0, @gen.height
@@ -100,6 +104,7 @@ class TestTable < MiniTest::Test
 
     refute_equal 0, @gen.height
     assert_equal 'cleared', @gen.column(0).padding
+
     @gen.clear!
 
     assert_empty @gen.to_s
@@ -459,12 +464,13 @@ class TestTable < MiniTest::Test
 
   def test_text
     assert_equal 0, @gen.height
-    @gen.text 'Hello World!  '
-    assert_equal 1, @gen.height
+    @gen.text "Hello World!\x20\x20"
 
-    assert_equal 'Hello World!', @gen.to_s
+    assert_equal 1, @gen.height
+    assert_equal 1, @gen.real_height
     assert_equal 0, @gen.width
     assert_equal 12, @gen.real_width
+    assert_equal 'Hello World!', @gen.to_s
   end
 
   def test_text_chunks
@@ -474,6 +480,9 @@ class TestTable < MiniTest::Test
     assert_equal \
       ['lon', 'g t', 'ext', '!'].join($/) + $/ +
       '123', @gen.to_s
+
+    assert_equal 2, @gen.height
+    assert_equal 5, @gen.real_height
   end
 
   def test_mulitiline_text_chunks
@@ -481,15 +490,20 @@ class TestTable < MiniTest::Test
     @gen.width = 3
 
     assert_equal ['lon', 'g', 'tex', 't!'].join($/), @gen.to_s
+
+    assert_equal 1, @gen.height
+    assert_equal 4, @gen.real_height
   end
 
   def test_empty_text
     @gen.text ''
-    @gen.text '' # last line break is stripped
+    @gen.text '' # last line break is stripped from output
 
-    assert_equal $/, @gen.to_s
     assert_equal 2, @gen.height
+    assert_equal 1, @gen.real_height
     assert_equal 0, @gen.width
     assert_equal 0, @gen.real_width
+
+    assert_equal $/, @gen.to_s
   end
 end

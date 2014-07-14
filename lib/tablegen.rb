@@ -85,10 +85,6 @@ class TableGen
     @columns.clear
   end
 
-  def height
-    @lines.count
-  end
-
   def width
     return @width if @width
 
@@ -103,6 +99,14 @@ class TableGen
 
   def real_width
     to_s.each_line.map {|l| real_length l.chomp }.max || 0
+  end
+
+  def height
+    @lines.count
+  end
+
+  def real_height
+    to_s.lines.count
   end
 
   def to_s
