@@ -243,12 +243,18 @@ class TableGen
       when :separator
         line.data[0] * width
       when :text
-        line.data
+        if width > 0
+          line.data.scan(/.{1,#{width}}/).join $/
+        else
+          line.data
+        end
       end
       out.rstrip!
 
-      line_length = real_length out
-      missing_width << line_length - @width if @width
+      if line.type == :row
+        line_length = real_length out
+        missing_width << line_length - @width if @width
+      end
 
       table += out + $/
     }

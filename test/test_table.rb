@@ -466,4 +466,30 @@ class TestTable < MiniTest::Test
     assert_equal 0, @gen.width
     assert_equal 12, @gen.real_width
   end
+
+  def test_text_chunks
+    @gen.text 'long text!'
+    @gen.row '123'
+
+    assert_equal \
+      ['lon', 'g t', 'ext', '!'].join($/) + $/ +
+      '123', @gen.to_s
+  end
+
+  def test_mulitiline_text_chunks
+    @gen.text "long\ntext!"
+    @gen.width = 3
+
+    assert_equal ['lon', 'g', 'tex', 't!'].join($/), @gen.to_s
+  end
+
+  def test_empty_text
+    @gen.text ''
+    @gen.text '' # last line break is stripped
+
+    assert_equal $/, @gen.to_s
+    assert_equal 2, @gen.height
+    assert_equal 0, @gen.width
+    assert_equal 0, @gen.real_width
+  end
 end
