@@ -6,7 +6,7 @@ require 'tablegen/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "tablegen"
-  spec.version       = Tablegen::VERSION
+  spec.version       = TableGen::VERSION
   spec.authors       = ["cfi30"]
   spec.email         = ["tablegen@cfillion.tk"]
   spec.summary       = %q{plain text table generator}
