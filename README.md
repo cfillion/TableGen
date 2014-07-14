@@ -5,6 +5,7 @@ Plain text table generator for ruby.
 Main features:
 
 - Choose column/header alignment (left, center or right)
+- CJK characters support
 - Embed progress bars (example in the documentation)
 - Insert text in the table
 - Minimum column length
