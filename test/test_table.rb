@@ -54,6 +54,7 @@ class TestTable < MiniTest::Test
     assert_equal :auto, col.header_alignment
     assert_equal 0, col.min_width
     assert_equal false, col.stretch
+    assert_equal 0, col.index
 
     block_param = nil
     @gen.column 0 do |col|

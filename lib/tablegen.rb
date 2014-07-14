@@ -56,7 +56,7 @@ class TableGen
         (@columns.count..index).each {|i| column i }
       end
 
-      col = Column.new
+      col = Column.new index
       @columns[index] = col
     end
 

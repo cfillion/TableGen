@@ -1,5 +1,10 @@
 # Instances of this class are created automatically by {TableGen#column TableGen#column}.
 class TableGen::Column
+  # The column's index.
+  #
+  # @return [Fixnum]
+  attr_reader :index
+
   # The alignment of the row fields.
   # Possible values:
   # - :left
@@ -67,7 +72,10 @@ class TableGen::Column
   # @return [Boolean]
   attr_accessor :stretch
 
-  def initialize
+  # @api private
+  def initialize(index)
+    @index = index
+
     @alignment = :left
     @collapse = false
     @format = proc {|data| data.to_s }
