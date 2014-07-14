@@ -1,25 +1,31 @@
 require 'tablegen/version'
 
+# TableGen is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 class TableGen
+  require 'tablegen/column'
+
+  # Base class for exceptions.
   class Error < RuntimeError; end
+
+  # Raised when the table cannot respect the width constraint.
   class WidthError < Error; end
 
-  Column = Struct.new \
-    :alignment,
-    :collapse,
-    :format,
-    :header_alignment,
-    :min_width,
-    :padding,
-    :stretch
-
+  # @api private
   Header = Struct.new \
     :name
 
+  # @api private
   Line = Struct.new \
     :type,
     :data
 
+  # @attribute border [rw] The column separator.
+  #   May be of any length. Defaults to a space.
+  #
+  #   @return [String]
   attr_accessor :border
   attr_writer   :width
 
@@ -30,6 +36,19 @@ class TableGen
     @collapsed = []
   end
 
+  # Yields and returns the column at the specified index.
+  #
+  # @example Change the alignment of the first column
+  #   table.column 0 do |col|
+  #     col.alignment = :right
+  #   end
+  #
+  # @param index [Fixnum]
+  # @yield [Column column] the requested column
+  # @return [Column] the requested column
+  #
+  # @see #columns
+  # @see Column
   def column(index)
     unless col = @columns[index]
       if @columns.count < index
@@ -38,14 +57,6 @@ class TableGen
       end
 
       col = Column.new
-      col.alignment = :left
-      col.collapse = false
-      col.format = proc {|data| data }
-      col.header_alignment = :auto
-      col.min_width = 0
-      col.padding = "\x20"
-      col.stretch = false
-
       @columns[index] = col
     end
 
@@ -53,40 +64,101 @@ class TableGen
     col
   end
 
+  # Shorthand to {#column}: Yields specified columns.
+  #
+  # @example Allow columns 6 and 8 to be collapsed
+  #   table.columns 6, 8 do |col|
+  #     col.collapse = true
+  #   end
+  #
+  # @param [Array<Fixnum>] indexes
+  # @yield [Column column] a column from the index list
+  #
+  # @see #column
+  # @see Column
   def columns(*indexes, &block)
     indexes.each {|index|
       column index, &block
     }
   end
 
+  # Add a row to the table. The fields are formatted with {Column#format}.
+  #
+  # @example
+  #   table.column 2 do |col|
+  #     col.format = proc {|price|
+  #       "$%.2f" % price
+  #     }
+  #   end
+  #
+  #   # Product Name, Quantity, Price
+  #   table.row 'Table Generator', 42, 0
+  #
+  # @param [Array<Object>] fields
+  # @raise [ArgumentError] at least one field is required
+  #
+  # @see #header
   def row(*fields)
     raise ArgumentError, 'wrong number of arguments (0 for 1+)' if fields.empty?
     @lines << Line.new(:row, fields)
   end
 
+  # Add a header row to the table. The fields are not formatted.
+  #
+  # @example
+  #   table.header 'Product Name', 'Quantity', 'Price'
+  #
+  # @param [Array<String>] fields
+  # @raise [ArgumentError] at least one field is required
+  #
+  # @see #row
   def header(*fields)
     row *fields.map {|name| Header.new name }
   end
 
+  # Add a separator to the table.
+  #
+  # @param [String] char the character to repeat
   def separator(char = '=')
     @lines << Line.new(:separator, char)
   end
 
-  def text(text)
-    @lines << Line.new(:text, text)
+  # Add a text line to the table.
+  # The text is wrapped automatically to fit into the table.
+  #
+  # @param line [String]
+  def text(line)
+    @lines << Line.new(:text, line)
   end
 
+  # Empty the table. Columns settings are conserved.
+  #
+  # @see #clear!
   def clear
     @lines.clear
   end
 
+  # Empty the table AND delete the columns.
+  #
+  # @see #clear
   def clear!
     clear
     @columns.clear
   end
 
+  # The maximum width (in characters) of the table.
+  # If unspecified (nil), returns the space required to display every row and header.
+  #
+  # @example Fit the table in the terminal
+  #   if STDOUT.tty?
+  #     table.width = STDOUT.winsize[1]
+  #   end
+  #
+  # @return [Fixnum]
+  #
+  # @see #real_width
   def width
-    return @width if @width
+    return @width unless @width.nil?
 
     width = 0
     rows.each {|row|
@@ -97,18 +169,46 @@ class TableGen
     width
   end
 
+  # Calculates the exact width (in characters) of the entire table.
+  #
+  # @return [Fixnum]
+  #
+  # @see #width
   def real_width
     to_s.each_line.map {|l| real_length l.chomp }.max || 0
   end
 
+  # The minimum height (in lines) of the table.
+  # @note Does not calculate wrapped text lines. If required, use {#real_height} instead.
+  #
+  # @!attribute [r] height
+  # @return [Fixnum]
+  #
+  # @see #real_height
   def height
     @lines.count
   end
 
+  # Calculates the exact height (in lines) of the table.
+  #
+  # @return [Fixnum]
+  #
+  # @see #height
   def real_height
     to_s.lines.count
   end
 
+  # Generate the table.
+  #
+  #   begin
+  #     puts table
+  #   rescue TableGen::WidthError
+  #     puts 'Terminal is too small'
+  #   end
+  #
+  # @return [String] the table
+  # @raise [WidthError] if the table is too large to fit in the {#width} constraint
+  # @raise [Error] if something is wrong (eg. invalid column alignment)
   def to_s
     create_columns
 
