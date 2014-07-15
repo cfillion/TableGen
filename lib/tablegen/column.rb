@@ -26,11 +26,12 @@ class TableGen::Column
   # The row formatter. The default block converts the original data to a {String}.
   #
   # @example Progress Bar
-  #   # formats 0.4 to [####      ]
+  #   # formats 0.4 to [####------]
   #   column.format = proc {|fraction, width_hint|
-  #     fill_width = width_hint - 2 # bar borders
-  #     repeat = fraction * fill_width
-  #     "[%-#{fill_width}s]" % ['#' * repeat]
+  #     fill_width = width_hint - 2 # bar boundaries
+  #     filler = '#' * (fraction * fill_width)
+  #     bar = filler.ljust(fill_width, '-')
+  #     '[' + bar + ']'
   #   }
   #   # works best with:
   #   column.min_width = 12
