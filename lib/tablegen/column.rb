@@ -17,7 +17,7 @@ class TableGen::Column
   # @see #header_alignment
   attr_accessor :alignment
 
-  # Whether the column can be hidden to respect the table's width constraint.
+  # Whether the column can be hidden to respect the table's width constraint (if any).
   # (Defaults to *false*)
   #
   # @return [Boolean]
@@ -41,7 +41,7 @@ class TableGen::Column
   #   column.stretch = true
   #
   # @param [Object] data whatever you passed to {TableGen#row}
-  # @param [Fixnum] width_hint
+  # @param [Fixnum = 0] width_hint
   # @return [Proc]
   attr_accessor :format
 
@@ -73,7 +73,13 @@ class TableGen::Column
   # Whether to stretch the column to fill the table's width constraint.
   # (Defaults to *false*)
   #
+  # This setting is ignored if:
+  # - another visible column has already been stretched (left to right)
+  # - the width of the table has not been set
+  #
   # @return [Boolean]
+  #
+  # @see TableGen#width
   attr_accessor :stretch
 
   # @api private
