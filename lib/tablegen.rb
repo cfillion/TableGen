@@ -1,12 +1,11 @@
 require 'tablegen/version'
+require 'tablegen/column'
 
 # TableGen is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 class TableGen
-  require 'tablegen/column'
-
   # Base class for exceptions.
   class Error < RuntimeError; end
 
@@ -14,13 +13,10 @@ class TableGen
   class WidthError < Error; end
 
   # @api private
-  Header = Struct.new \
-    :name
+  Header = Struct.new :name
 
   # @api private
-  Line = Struct.new \
-    :type,
-    :data
+  Line = Struct.new :type, :data
 
   # @attribute border [rw] The column separator.
   #   May be of any length. Defaults to a space.
