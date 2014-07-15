@@ -23,7 +23,10 @@ class TableGen::Column
   # @return [Boolean]
   attr_accessor :collapse
 
-  # The row formatter. The default block converts the original data to a {String}.
+  # The row formatter.
+  #
+  # @example Default Formatter
+  #   column.format = proc {|data| data.to_s }
   #
   # @example Progress Bar
   #   # formats 0.4 to [####------]
