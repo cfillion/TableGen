@@ -156,7 +156,7 @@ class TestTable < MiniTest::Test
       '  test    test', @gen.to_s
   end
 
-  def test_align_other
+  def test_align_invalid
     @gen.row 'test'
 
     col = @gen.column 0 do |col|
