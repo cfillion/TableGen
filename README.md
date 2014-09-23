@@ -82,7 +82,7 @@ Mozilla Firefox          Gecko         MPL
 
 ## Contributing
 
-1. [Fork it](https://bitbucket.org/cfi30/tablegen/fork)
+1. [Fork it](https://github.com/cfi30/TableGen/fork)
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Test your changes (`rake`)
 4. Commit your changes (`git commit -am 'Add some feature'`)
