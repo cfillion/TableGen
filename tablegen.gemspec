@@ -7,10 +7,10 @@ require 'tablegen/version'
 Gem::Specification.new do |spec|
   spec.name          = "tablegen"
   spec.version       = TableGen::VERSION
-  spec.authors       = ["cfi30"]
+  spec.authors       = ["cfillion"]
   spec.email         = ["tablegen@cfillion.tk"]
   spec.summary       = %q{plain text table generator}
-  spec.homepage      = "https://bitbucket.org/cfi30/tablegen"
+  spec.homepage      = "https://github.com/cfillion/TableGen"
   spec.license       = "LGPL-3.0+"
 
   spec.files         = `git ls-files -z`.split("\x0")
