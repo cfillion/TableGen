@@ -32,6 +32,7 @@ class TableGen
     @columns = []
     @lines = []
     @collapsed = []
+    @width = nil
   end
 
   # Yields and returns the column at the specified index.
@@ -111,7 +112,7 @@ class TableGen
   #
   # @see #row
   def header(*fields)
-    row *fields.map {|name| Header.new name }
+    row(*fields.map {|name| Header.new name })
   end
 
   # Add a separator to the table.
